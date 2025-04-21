@@ -1,4 +1,5 @@
-# 2025_ia651_chimaga_pahla
-IA651 Final Project
+### 2025_ia651_chimaga_pahla
 
-Lerato and I 
+## IA651 Final Project
+
+# Lerato and I 
