@@ -23,11 +23,45 @@ The dataset contains daily pricing data from July 2022 to February 2024, includi
 - **Problem Type**: Regression (predicting continuous S&P 500 price)
 - **Dataset Size**: 1013 observations with 20 features
 - **Key Observations**:
-  - Most price features show right-skewed distributions
-  - Bitcoin displays extremely high volatility
-  - Berkshire Hathaway's price is significantly higher than other assets
-  - Natural Gas prices are more stable than cryptocurrencies
-  - S&P 500 prices are approximately normally distributed (mean ~4200, range ~3500-5000)
+## Price Distribution Analysis
+
+Our analysis of asset price distributions revealed interesting patterns:
+
+### Crude Oil Price
+- Bimodal distribution with primary concentration in $60-80 range
+- Secondary cluster around $40
+- Price range extends from $20 to $120
+
+### Gold Price
+- Multiple distinct peaks at $1750, $1800, and $1950
+- Price range spans $1500-$2100
+- Highest observation frequency in the $1750-1850 band
+
+### Nasdaq 100 Price
+- Multiple price clusters across $8,000-$18,000 range
+- Notable concentrations at $12,000, $14,000, and $16,000
+- Reflects distinct trading ranges over the observation period
+
+### Apple Price
+- Primary peak around $150
+- Secondary concentration near $180
+- Additional smaller cluster in $80-90 range
+- Overall price range: $60-$200
+
+### Microsoft Price
+- Two major price clusters at $240 and $330-340
+- Price range spans $150-$400
+- Several separate concentrations indicating different trading periods
+
+### Google Price
+- Four distinct peaks at approximately $70, $90, $110, and $140
+- Demonstrates clear movement through multiple price ranges
+- Fairly evenly distributed frequency across peaks
+
+### Bitcoin Price
+- Complex distribution with concentrations at $10,000, $27,000, and $43,000
+- Extended range from $5,000 to $70,000
+- Reflects significant price volatility characteristic of cryptocurrencies
 
     ![image](https://github.com/user-attachments/assets/7f982960-cdf0-44c2-bb19-ef281899adb4)
 
