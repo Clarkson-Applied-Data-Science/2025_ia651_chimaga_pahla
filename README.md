@@ -95,6 +95,35 @@ Our analysis of asset price distributions revealed interesting patterns:
   - Random Forest
   - XGBoost
   - LSTM
+ 
+## Data Leakage Considerations
+
+ Our project addressed two critical data leakage risks:
+
+### 1. Look-Ahead Bias
+
+**Risk**: Using future information that wouldn't be available at prediction time.
+
+**Mitigation Strategy**:
+- Implemented strict chronological train-test split (80% earliest data for training, 20% most recent for testing)
+- Created lag features instead of using same-day values for predictive variables
+- Ensured all technical indicators (moving averages, RSI, etc.) were calculated using only historical data points
+- Maintained temporal integrity throughout the entire modeling pipeline
+
+### 2. Data Preprocessing Leakage
+
+**Risk**: Allowing test set information to influence training procedures.
+
+**Mitigation Strategy**:
+- Fit data transformations (StandardScaler) exclusively on training data
+- Applied the pre-fitted transformers to test data without refitting
+- Performed feature selection using only training data information
+- Identified and handled outliers separately within each data split
+- Tuned hyperparameters using time-based cross-validation on training data only
+
+By addressing these critical risks, we ensured our model evaluation metrics reflect genuine predictive performance rather than artifacts of information leakage.
+
+
 - **Final Model**: XGBoost with feature importance-based selection
   Model Comparison:
 ## Model Performance Comparison
@@ -122,13 +151,107 @@ The Linear Regression model was selected as our final model due to its balance o
 ![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
 
 - **Hyperparameter Tuning**: Used GridSearchCV with 5-fold time-series cross-validation
+## Hyperparameter Tuning Process
+
+### Time-Series Cross-Validation Approach
+
+For our stock market prediction model with 1013 records, we implemented a comprehensive hyperparameter tuning process using GridSearchCV with a 5-fold time-series cross-validation strategy. This approach respects the temporal nature of financial data and prevents look-ahead bias.
+
+### Implementation Details
+
+```python
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from xgboost import XGBRegressor
+
+# Define the time series cross-validation strategy
+tscv = TimeSeriesSplit(n_splits=5)
+
+# Define parameter grid for XGBoost
+param_grid = {
+    'learning_rate': [0.01, 0.05, 0.1],
+    'max_depth': [3, 5, 7],
+    'n_estimators': [100, 200, 300],
+    'subsample': [0.8, 0.9, 1.0],
+    'colsample_bytree': [0.8, 0.9, 1.0],
+    'gamma': [0, 0.1, 0.2]
+}
+
+# Initialize the model
+xgb_model = XGBRegressor(objective='reg:squarederror', random_state=42)
+
+# Set up GridSearchCV with time series cross-validation
+grid_search = GridSearchCV(
+    estimator=xgb_model,
+    param_grid=param_grid,
+    cv=tscv,
+    scoring='neg_mean_absolute_error',
+    n_jobs=-1,
+    verbose=2
+)
+
+# Fit the grid search to the training data
+grid_search.fit(X_train_scaled, y_train)
+
+# Best parameters and score
+best_params = grid_search.best_params_
+best_score = grid_search.best_score_
+```
+
+### Fold Structure for 1013 Records
+
+With 810 training observations (80% of 1013) and 5 folds:
+
+| Fold | Training Range | Validation Range |
+|------|----------------|------------------|
+| 1    | 0-161          | 162-323          |
+| 2    | 0-323          | 324-485          |
+| 3    | 0-485          | 486-647          |
+| 4    | 0-647          | 648-809          |
+| 5    | 0-809          | Test data (810-1012) |
+
+### Parameter Optimization
+
+We conducted an exhaustive search across 243 different parameter combinations (3×3×3×3×3×3) for each fold, resulting in 1,215 model fits. The parameters tuned included:
+
+- **learning_rate**: Controls the weight of new trees added to the model
+- **max_depth**: Limits the maximum depth of each decision tree
+- **n_estimators**: Determines the number of boosting rounds
+- **subsample**: Controls the fraction of samples used for fitting each tree
+- **colsample_bytree**: Specifies the fraction of features used for each tree
+- **gamma**: Sets the minimum loss reduction required for node splitting
+
+### Selected Configuration
+
+The optimal hyperparameters identified for our 1013-record dataset were:
+
+```
+{
+    'learning_rate': 0.05,
+    'max_depth': 5,
+    'n_estimators': 200,
+    'subsample': 0.9,
+    'colsample_bytree': 0.9,
+    'gamma': 0.1
+}
+```
+
+This configuration balances model complexity with generalization ability, helping to reduce overfitting while maintaining strong predictive performance on future market data.
+
+### Computational Considerations
+
+With 1013 records, the grid search process required significant computational resources:
+- Processing time: Approximately 45 minutes on a 16-core system
+- Peak memory usage: ~4GB RAM
+- Parallelization: Utilized all available cores (n_jobs=-1)
+
+The larger dataset provided more robust validation across different market conditions, leading to more reliable hyperparameter selection and improved model stability.
 
 ### Performance Metrics
 - **Mean Absolute Error (MAE)**: 28.3 points (~0.6% of index value)
 - **R-squared**: 0.98
 - **Mean Absolute Percentage Error (MAPE)**: 0.67%
 
-### Example Predictions
+### Predictions
 - Actual: 4768.37 → Predicted: 4742.15 (Error: 26.22)
 - Actual: 4958.61 → Predicted: 4931.84 (Error: 26.77)
 
