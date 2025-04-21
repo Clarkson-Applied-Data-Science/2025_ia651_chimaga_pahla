@@ -72,8 +72,8 @@ Our analysis of asset price distributions revealed interesting patterns:
   - Tech stocks highly correlated with indices
   - Gold shows low correlation with tech stocks
   - Cryptocurrencies moderately correlated with each other but weakly with traditional assets
-![image](https://github.com/user-attachments/assets/8c217b34-162a-42a0-af85-cee25e3ef334)
 
+![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
 
 ### Feature Engineering
 - **Lag Features**: 1-day, 3-day, and 7-day lagged versions of key prices
@@ -84,8 +84,8 @@ Our analysis of asset price distributions revealed interesting patterns:
   - Bollinger Bands
 - **Date Features**: Day of week, month, and quarter
 - **Interaction Terms**: Cross-features between highly correlated assets
+![image](https://github.com/user-attachments/assets/8c217b34-162a-42a0-af85-cee25e3ef334)
 
-![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
 
 
 ### Model Development
