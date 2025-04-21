@@ -197,15 +197,6 @@ The optimal hyperparameters identified for our 1013-record dataset were:
 
 This configuration balances model complexity with generalization ability, helping to reduce overfitting while maintaining strong predictive performance on future market data.
 
-### Computational Considerations
-
-With 1013 records, the grid search process required significant computational resources:
-- Processing time: Approximately 45 minutes on a 16-core system
-- Peak memory usage: ~4GB RAM
-- Parallelization: Utilized all available cores (n_jobs=-1)
-
-The larger dataset provided more robust validation across different market conditions, leading to more reliable hyperparameter selection and improved model stability.
-
 ### Performance Metrics
 - **Mean Absolute Error (MAE)**: 28.3 points (~0.6% of index value)
 - **R-squared**: 0.98
