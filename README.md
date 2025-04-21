@@ -157,46 +157,6 @@ The Linear Regression model was selected as our final model due to its balance o
 
 For our stock market prediction model with 1013 records, we implemented a comprehensive hyperparameter tuning process using GridSearchCV with a 5-fold time-series cross-validation strategy. This approach respects the temporal nature of financial data and prevents look-ahead bias.
 
-### Implementation Details
-
-```python
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from xgboost import XGBRegressor
-
-# Define the time series cross-validation strategy
-tscv = TimeSeriesSplit(n_splits=5)
-
-# Define parameter grid for XGBoost
-param_grid = {
-    'learning_rate': [0.01, 0.05, 0.1],
-    'max_depth': [3, 5, 7],
-    'n_estimators': [100, 200, 300],
-    'subsample': [0.8, 0.9, 1.0],
-    'colsample_bytree': [0.8, 0.9, 1.0],
-    'gamma': [0, 0.1, 0.2]
-}
-
-# Initialize the model
-xgb_model = XGBRegressor(objective='reg:squarederror', random_state=42)
-
-# Set up GridSearchCV with time series cross-validation
-grid_search = GridSearchCV(
-    estimator=xgb_model,
-    param_grid=param_grid,
-    cv=tscv,
-    scoring='neg_mean_absolute_error',
-    n_jobs=-1,
-    verbose=2
-)
-
-# Fit the grid search to the training data
-grid_search.fit(X_train_scaled, y_train)
-
-# Best parameters and score
-best_params = grid_search.best_params_
-best_score = grid_search.best_score_
-```
-
 ### Fold Structure for 1013 Records
 
 With 810 training observations (80% of 1013) and 5 folds:
