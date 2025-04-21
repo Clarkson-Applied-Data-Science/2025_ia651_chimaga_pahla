@@ -72,8 +72,7 @@ Our analysis of asset price distributions revealed interesting patterns:
   - Tech stocks highly correlated with indices
   - Gold shows low correlation with tech stocks
   - Cryptocurrencies moderately correlated with each other but weakly with traditional assets
-
-![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
+![image](https://github.com/user-attachments/assets/8c217b34-162a-42a0-af85-cee25e3ef334)
 
 ### Feature Engineering
 - **Lag Features**: 1-day, 3-day, and 7-day lagged versions of key prices
@@ -84,7 +83,8 @@ Our analysis of asset price distributions revealed interesting patterns:
   - Bollinger Bands
 - **Date Features**: Day of week, month, and quarter
 - **Interaction Terms**: Cross-features between highly correlated assets
-![image](https://github.com/user-attachments/assets/8c217b34-162a-42a0-af85-cee25e3ef334)
+![image](https://github.com/user-attachments/assets/01a46671-a135-4fc2-a45d-4d994f190587)
+
 
 
 
@@ -119,7 +119,7 @@ Evaluated several models for S&P 500 price prediction, with the following result
 - The difference between train and test metrics indicates some level of overfitting across all models
 
 The Linear Regression model was selected as our final model due to its balance of simplicity and performance on unseen data.
-![image](https://github.com/user-attachments/assets/01a46671-a135-4fc2-a45d-4d994f190587)
+![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
 
 - **Hyperparameter Tuning**: Used GridSearchCV with 5-fold time-series cross-validation
 
