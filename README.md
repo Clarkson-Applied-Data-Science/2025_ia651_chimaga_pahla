@@ -85,6 +85,9 @@ Our analysis of asset price distributions revealed interesting patterns:
 - **Date Features**: Day of week, month, and quarter
 - **Interaction Terms**: Cross-features between highly correlated assets
 
+![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
+
+
 ### Model Development
 - **Train/Test Split**: Time-based (not random) with first 80% for training, last 20% for testing
 - **Models Evaluated**:
@@ -94,23 +97,29 @@ Our analysis of asset price distributions revealed interesting patterns:
   - LSTM
 - **Final Model**: XGBoost with feature importance-based selection
   Model Comparison:
-                     train_mae     test_mae   train_r2     test_r2  \
-Linear Regression    21.418928    45.265401   0.997191    0.898928   
-Random Forest        10.331058    67.083131   0.999266    0.868613   
-XGBoost               0.018719    66.488127   1.000000    0.869273   
-Tuned XGBoost         1.716067    66.352241   0.999982    0.842947   
-ARIMA                      NaN   261.183214        NaN   -0.716981   
-LSTM               2680.614387  2827.597523 -26.385819 -136.777310   
+## Model Performance Comparison
 
-                   train_mape  test_mape  
-Linear Regression    0.574144   1.047677  
-Random Forest        0.275303   1.510020  
-XGBoost              0.000490   1.483351  
-Tuned XGBoost        0.045372   1.461996  
-ARIMA                     NaN   5.753026  
-LSTM                68.629160  64.409137
+Evaluated several models for S&P 500 price prediction, with the following results:
+
+| Model             | Train MAE | Test MAE  | Train R² | Test R²  | Train MAPE | Test MAPE |
+|-------------------|-----------|-----------|----------|----------|------------|-----------|
+| Linear Regression | 21.42     | 45.27     | 0.997    | 0.899    | 0.57%      | 1.05%     |
+| Random Forest     | 10.33     | 67.08     | 0.999    | 0.869    | 0.28%      | 1.51%     |
+| XGBoost           | 0.02      | 66.49     | 1.000    | 0.869    | 0.00%      | 1.48%     |
+| Tuned XGBoost     | 1.72      | 66.35     | 1.000    | 0.843    | 0.05%      | 1.46%     |
+| ARIMA             | -         | 261.18    | -        | -0.717   | -          | 5.75%     |
+| LSTM              | 2680.61   | 2827.60   | -26.39   | -136.78  | 68.63%     | 64.41%    |
+
+### Key Findings:
+
+- **Linear Regression** showed the best generalization with the lowest test MAE of 45.27
+- **XGBoost models** achieved perfect or near-perfect performance on training data but didn't generalize as well to test data
+- **ARIMA and LSTM** models performed poorly, with LSTM showing significant overfitting
+- All tree-based models (Random Forest and XGBoost variants) showed similar test performance
+- The difference between train and test metrics indicates some level of overfitting across all models
+
+The Linear Regression model was selected as our final model due to its balance of simplicity and performance on unseen data.
 ![image](https://github.com/user-attachments/assets/01a46671-a135-4fc2-a45d-4d994f190587)
-![image](https://github.com/user-attachments/assets/f2c2eb38-28b0-4782-9652-fa2bdd812833)
 
 - **Hyperparameter Tuning**: Used GridSearchCV with 5-fold time-series cross-validation
 
