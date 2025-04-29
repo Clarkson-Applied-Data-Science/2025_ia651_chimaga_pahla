@@ -31,13 +31,34 @@ The dataset contains daily pricing data from July 2022 to February 2024, includi
 - **Index Prices**: S&P 500, Nasdaq 100
 - **Commodity Prices**: Natural Gas, Crude Oil, Copper, Platinum, Silver, Gold
 - **Cryptocurrencies**: Bitcoin, Ethereum
+![output](https://github.com/user-attachments/assets/3acfa713-a498-4064-9534-12e3931bdb55)
 
 ## Process Summary
 
-### Data Preparation
-- Standardized date formats
-- Handled missing values
-- Fixed formatting issues (e.g., Berkshire Hathaway - numbers with commas as thousand separators)
+## Data Preparation
+
+Our data preparation process involved several critical steps to ensure the dataset was clean, consistent, and ready for modeling:
+
+### Date Standardization
+- Converted all date fields to uniform ISO format (`YYYY-MM-DD`) using pandas' `to_datetime()`
+- Created a consistent datetime index for time series analysis
+
+### Missing Value Treatment
+- Applied forward-fill method for market holidays and weekends
+- Used linear interpolation for isolated missing values
+- Implemented asset-specific imputation techniques for extended gaps
+
+### Data Formatting Standardization
+- Stripped non-numeric characters from price fields
+- Corrected Berkshire Hathaway's stock price format by removing thousand separators (commas)
+- Standardized all numeric columns to floating-point format
+
+### Data Quality Assurance
+- Implemented automated outlier detection using IQR method
+- Validated significant price jumps against external sources
+- Established data integrity checks to flag potential errors
+
+These procedures ensured our analysis was built on clean, consistent, and reliable data.
 
 ### Exploratory Data Analysis
 - **Problem Type**: Regression (predicting continuous S&P 500 price)
@@ -46,7 +67,10 @@ The dataset contains daily pricing data from July 2022 to February 2024, includi
 ## Exploratory Data Analysis
 
 ### Price Distribution Analysis
-
+![all other distribution](https://github.com/user-attachments/assets/a8c6062c-0248-4875-aede-be7c13f28866)
+Distribution of all variables.*
+![SnP500 Distribution](https://github.com/user-attachments/assets/b9cb93d2-a9cf-4b58-a38a-798c07c96cc1)
+Distribution of the predictor.*
 Our analysis of asset price distributions revealed interesting patterns:
 
 - **Crude Oil Price**: Bimodal distribution ($60-80 range and $40 range)
@@ -58,6 +82,8 @@ Our analysis of asset price distributions revealed interesting patterns:
 - **Bitcoin Price**: Complex distribution with concentrations at $10,000, $27,000, and $43,000
 
 ### Correlation Analysis
+![correlation matrix](https://github.com/user-attachments/assets/a7305563-2cf1-4100-85dd-97b2f1cf30db)
+Correlation Results.*
 - **Strong Correlations**:
   - Nasdaq 100 and S&P 500: 0.99
   - Tech stocks highly correlated with indices
@@ -123,7 +149,8 @@ Lasso regression adds an L1 penalty (sum of absolute coefficients) that can shri
 - **Lasso optimal alpha**: 0.1
 
 ### Feature Selection Results with Lasso
-
+![feature importance](https://github.com/user-attachments/assets/7f764f53-e19c-46a4-ac93-a8b7ac202826)
+Feature Importance Results.*
 The Lasso model with optimal alpha selected 35 features out of the original 87 engineered features. The most important retained features were:
 
 1. Nasdaq_100_Price_lag_1
@@ -173,9 +200,9 @@ To demonstrate the effectiveness of our overfitting mitigation strategies, we've
 
 ### Model Performance Visualization
 
-![Model Performance Comparison](https://github.com/your-username/sp500-prediction/blob/main/images/model_comparison.png)
+![SNP500 After mitigation](https://github.com/user-attachments/assets/f27acac5-9db8-41a5-a338-6ef014b46f04)
 
-*Fig 1: Comparison of Test MAE values before and after implementing overfitting mitigation strategies. Lower values indicate better performance.*
+Comparison of Test MAE values before and after implementing overfitting mitigation strategies. Lower values indicate better performance.*
 # Financial Time Series Forecasting Project
 
 ## Key Improvements
