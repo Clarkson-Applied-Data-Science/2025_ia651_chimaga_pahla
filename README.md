@@ -26,12 +26,16 @@ This project analyzes daily pricing data for various US stocks, commodities, and
 
 The dataset contains daily pricing data from July 2022 to February 2024, including:
 
+![output](https://github.com/user-attachments/assets/3acfa713-a498-4064-9534-12e3931bdb55)
+
+
 - **Date**: Trading dates
 - **Stock Prices**: Apple, Tesla, Microsoft, Google, Nvidia, Berkshire Hathaway, Netflix, Amazon, Meta
 - **Index Prices**: S&P 500, Nasdaq 100
 - **Commodity Prices**: Natural Gas, Crude Oil, Copper, Platinum, Silver, Gold
 - **Cryptocurrencies**: Bitcoin, Ethereum
-![output](https://github.com/user-attachments/assets/3acfa713-a498-4064-9534-12e3931bdb55)
+
+
 
 ## Process Summary
 
