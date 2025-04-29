@@ -93,11 +93,39 @@ Our analysis of asset price distributions revealed interesting patterns:
 
 ![correlation matrix](https://github.com/user-attachments/assets/a7305563-2cf1-4100-85dd-97b2f1cf30db)
 Correlation Results.
-- **Strong Correlations**:
-  - Nasdaq 100 and S&P 500: 0.99
-  - Tech stocks highly correlated with indices
-  - Gold shows low correlation with tech stocks
-  - Cryptocurrencies moderately correlated with each other but weakly with traditional assets
+
+
+# Financial Asset Correlation Analysis
+
+## Key Relationships
+
+### Indices & Tech Stocks
+| Pair                | Correlation |
+|---------------------|-------------|
+| S&P 500 ↔ Nasdaq 100 | 0.95        |
+| S&P 500 ↔ Google    | 0.95        |
+| Microsoft ↔ Apple   | 0.93        |
+| Nvidia ↔ Microsoft  | 0.92        |
+
+### Commodities
+| Pair                | Correlation |
+|---------------------|-------------|
+| Gold ↔ S&P 500      | 0.14        |
+| Oil ↔ Google        | 0.68        |
+| Natural Gas ↔ Meta  | -0.33       |
+
+### Cryptocurrencies
+| Pair                | Correlation |
+|---------------------|-------------|
+| Bitcoin ↔ Ethereum  | 0.89        |
+| Ethereum ↔ Google   | 0.87        |
+| Bitcoin ↔ Gold      | -0.12       |
+
+## Diversification Opportunities
+- **Best Hedges**: Gold (ρ=0.14), Natural Gas (ρ=-0.33)
+- **Independent Assets**: Netflix, Amazon
+- **Sector Pairs**: Tech stocks (ρ>0.90) should not be paired
+
 
 ## Feature Engineering
 
