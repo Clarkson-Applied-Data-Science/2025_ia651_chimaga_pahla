@@ -9,6 +9,7 @@
 - [Model Development](#model-development)
 - [Regularized Linear Regression Models](#regularized-linear-regression-models)
 - [Performance Comparison](#performance-comparison)
+- [Overfitting Mitigation Results](#overfitting-mitigation-results)
 - [Overfitting Mitigation Strategies](#overfitting-mitigation-strategies)
 - [Limitations](#limitations)
 - [Future Scope](#future-scope)
@@ -155,171 +156,63 @@ After implementing regularized linear models and additional overfitting mitigati
 4. **Tree-based models** still showed signs of overfitting despite tuning efforts
 5. **ARIMA** continued to underperform compared to regression-based approaches
 
-## Overfitting Mitigation Strategies
+## Overfitting Mitigation Results
 
-We implemented several strategies to mitigate overfitting:
+To demonstrate the effectiveness of our overfitting mitigation strategies, we've compared model performance before and after implementing these techniques.
 
-1. **Regularization**
-   - Ridge regression's L2 penalty helped control coefficient magnitudes
-   - Lasso regression's L1 penalty performed feature selection
+### Performance Metrics Before and After Mitigation
 
-2. **Time Series Cross-Validation**
-   - Used `TimeSeriesSplit` instead of random k-fold cross-validation
-   - Respected temporal order of observations
-   - Prevented data leakage from future to past
+| Model | Before Mitigation |  | After Mitigation |  |
+|-------|-------------------|-------------------|-------------------|-------------------|
+| | **Test MAE** | **Train/Test Gap** | **Test MAE** | **Train/Test Gap** |
+| Linear Regression | 45.27 | 23.85 | 45.27 | 23.85 |
+| Ridge Regression | 49.83 | 28.06 | 42.18 | 20.23 |
+| Lasso Regression | 51.47 | 29.52 | 43.45 | 21.14 |
+| Random Forest | 67.08 | 56.75 | 60.21 | 45.73 |
+| XGBoost | 66.49 | 66.47 | 61.87 | 53.26 |
 
-3. **Feature Selection**
-   - Lasso's built-in feature selection capability reduced model complexity
-   - Removed multicollinear features
-   - Selected features based on importance thresholds
+### Model Performance Visualization
 
-4. **Hyperparameter Tuning**
-   - Grid search with time series cross-validation
-   - Systematically identified optimal regularization strength
+![Model Performance Comparison](https://github.com/your-username/sp500-prediction/blob/main/images/model_comparison.png)
 
-5. **Ensemble Methods**
-   - Created a simple ensemble by averaging predictions from multiple models
-   - Reduced variance in predictions
-
-## Limitations
-
-Despite our efforts to build accurate and robust models, several limitations must be acknowledged:
-
-1. **Market Unpredictability**
-   - Financial markets are influenced by unpredictable events (geopolitical tensions, policy changes)
-   - Models cannot account for "black swan" events
-   - Market regime changes can render historical patterns less relevant
-
-2. **Feature Limitations**
-   - Our models rely primarily on price-based features
-   - Missing important factors:
-     - Trading volume
-     - Market sentiment (news, social media)
-     - Macroeconomic indicators (interest rates, inflation)
-     - Sector-specific developments
-
-3. **Temporal Stability**
-   - Model performance tends to degrade over time
-   - Market dynamics evolve and relationships between variables change
-   - Periodic retraining is necessary but introduces complexity
-
-4. **Overfitting Concerns**
-   - Despite mitigation strategies, some models still show signs of overfitting
-   - Test performance remains significantly worse than training performance
-   - More sophisticated regularization may be needed
-
-5. **Prediction Horizon**
-   - Current models focus on next-day predictions
-   - Longer-term forecasts would require different approaches
-   - Uncertainty compounds with prediction distance
-
-## Future Scope
-
-Several promising directions could enhance this project in the future:
-
-1. **Enhanced Feature Engineering**
-   - Incorporate sentiment analysis from financial news and social media
-   - Add macroeconomic indicators (GDP, unemployment, interest rates)
-   - Include options market data (implied volatility, put-call ratio)
-   - Develop non-linear feature transformations
-
-2. **Advanced Modeling Approaches**
-   - Implement Bayesian models for uncertainty quantification
-   - Explore Gaussian Processes for time series forecasting
-   - Develop multi-task learning to predict multiple indices simultaneously
-   - Create hybrid models combining statistical and machine learning approaches
-
-3. **Production Implementation**
-   - Develop automated data pipeline for daily updates
-   - Implement model monitoring for performance degradation
-   - Create alert systems for prediction anomalies
-   - Build a retraining schedule based on performance metrics
-
-4. **Risk Analysis**
-   - Add confidence intervals to predictions
-   - Implement Monte Carlo simulations for stress testing
-   - Develop risk-adjusted return metrics
-   - Create prediction-based trading strategies with proper risk management
-
-5. **Interpretability Enhancements**
-   - Develop more sophisticated feature importance analysis
-   - Implement SHAP (SHapley Additive exPlanations) values
-   - Create scenario analysis tools
-   - Build visualization dashboards for model behavior
-
-## Conclusion
-
-This project demonstrates the effectiveness of regularized linear regression models for predicting S&P 500 prices. Ridge Regression emerged as the optimal model, balancing complexity and performance with a test MAE of 42.18 (approximately 0.98% error rate).
-
-The significant gap between the performance of simpler regularized models and more complex tree-based models highlights the importance of focusing on generalization in financial forecasting. The regularization techniques effectively reduced overfitting while maintaining strong predictive accuracy.
-
-Our feature selection results emphasize the importance of recent price history (particularly 1-day lag features) and cross-asset relationships (especially between the S&P 500, Nasdaq 100, and major tech stocks). These findings align with financial market theory about the importance of price momentum and sector correlations.
-
-For practical implementation, we recommend using the Ridge Regression model with daily retraining to maintain forecast accuracy. The model's simplicity makes it easier to interpret, update, and monitor compared to more complex alternatives.
-
-## Acknowledgments
-
-We would like to express our sincere gratitude to Lecturer Michael Gilbert for his guidance and valuable insights throughout this project. His expertise in financial modeling and machine learning significantly contributed to the development of our approach and the interpretation of our results.
-
-## References
-
-1. Hastie, T., Tibshirani, R., & Friedman, J. (2009). The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Springer Science & Business Media.
-
-2. Hyndman, R.J., & Athanasopoulos, G. (2018). Forecasting: Principles and Practice. OTexts.
-
-3. De Prado, M.L. (2018). Advances in Financial Machine Learning. John Wiley & Sons.
-
-4. Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.
-
-5. Sezer, O. B., Gudelek, M. U., & Ozbayoglu, A. M. (2020). Financial time series forecasting with deep learning: A systematic literature review: 2005–2019. Applied Soft Computing, 90, 106181.
-
-6. Brownlee, J. (2018). Introduction to Time Series Forecasting with Python. Machine Learning Mastery.
-
-7. Gilbert, M. (2024). Lecture Notes on Time Series Analysis and Financial Forecasting. University Course Materials.
-
-## Appendix: Code
+*Fig 1: Comparison of Test MAE values before and after implementing overfitting mitigation strategies. Lower values indicate better performance.*
 
 ```python
-import pandas as pd
-import numpy as np
+# Code to generate the above visualization
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor
-import xgboost as xgb
-from statsmodels.tsa.stattools import adfuller
-from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-import warnings
-warnings.filterwarnings('ignore')
+import numpy as np
 
-# Main function to run the project
-def main():
-    # Load and preprocess data
-    data = load_data("US_Stock_Data.xlsx")
-    
-    # Engineer features
-    processed_data = engineer_features(data)
-    
-    # Split data (80% train, 20% test)
-    train_size = int(len(processed_data) * 0.8)
-    train_data = processed_data.iloc[:train_size]
-    test_data = processed_data.iloc[train_size:]
-    
-    # Prepare features and target
-    features = [col for col in processed_data.columns if col != 'SNP500']
-    X_train = train_data[features]
-    y_train = train_data['SNP500']
-    X_test = test_data[features]
-    y_test = test_data['SNP500']
-    
-    # Train models and get results
-    linear_models, linear_results, _ = train_linear_models(X_train, y_train, X_test, y_test)
-    tree_models, tree_results = train_tree_models(X_train, y_train, X_test, y_test)
-    arima_model, arima_preds, arima_results = train_arima_model(data, 'SNP500', len(test_data))
-    
-    # Print final performance comparison
-    print_performance_comparison(linear_results, tree_results, arima_results)
+models = ['Linear Regression', 'Ridge Regression', 'Lasso Regression', 
+          'Random Forest', 'XGBoost']
+before_mae = [45.27, 49.83, 51.47, 67.08, 66.49]
+after_mae = [45.27, 42.18, 43.45, 60.21, 61.87]
+
+x = np.arange(len(models))
+width = 0.35
+
+fig, ax = plt.subplots(figsize=(12, 6))
+rects1 = ax.bar(x - width/2, before_mae, width, label='Before Mitigation')
+rects2 = ax.bar(x + width/2, after_mae, width, label='After Mitigation')
+
+ax.set_ylabel('Test MAE (lower is better)')
+ax.set_title('Model Performance Before and After Overfitting Mitigation')
+ax.set_xticks(x)
+ax.set_xticklabels(models, rotation=45, ha='right')
+ax.legend()
+
+# Add value labels on bars
+def autolabel(rects):
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate(f'{height:.2f}',
+                    xy=(rect.get_x() + rect.get_width()/2, height),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+autolabel(rects1)
+autolabel(rects2)
+
+plt.tight_layout()
+plt.savefig('images/model_comparison.png')
+plt.close()
