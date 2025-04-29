@@ -163,7 +163,7 @@ Correlation Results.
   - Gold × Crude Oil  
   - Apple × Microsoft
 
-### Usage
+
 
 # Generate features
 engineered_data = engineer_technical_features(raw_data)
@@ -320,20 +320,135 @@ Evaluated six modeling approaches:
 4. `Gold_rsi` (β = 0.17)
 5. `snp_nasdaq_interaction` (β = 0.15)
 
-#### Random Forest
-- Ensemble of decision trees for non-linear relationships
-- Tuned tree depth, n_estimators, and min_samples_split
-- Leveraged feature importance metrics
+# Random Forest Implementation & Performance Analysis
 
-#### XGBoost
-- Gradient boosting for enhanced performance
-- Early stopping and learning rate schedules
-- Optimized subsample/column sample parameters
+## Model Architecture
+- **Ensemble Method**: Bagging with decision tree base learners
+- **Key Parameters**:
+  - Number of trees: 500
+  - Maximum depth: None (nodes expand until pure)
+  - Minimum samples split: 5
+  - Bootstrap sampling: True (with replacement)
+  - Max features: 'sqrt' (square root of total features)
 
-#### ARIMA
-- Statistical time series model complement
-- ACF/PACF analysis for optimal (p,d,q) parameters
-- Box-Jenkins methodology for validation
+## Hyperparameter Optimization Results
+| Parameter Combination               | Validation MAE | Overfitting Indicators |
+|-------------------------------------|----------------|-------------------------|
+| n_estimators=100, max_depth=10      | 68.92          | Moderate                |
+| n_estimators=500, max_depth=None    | 65.17          | Minimal                 |
+| n_estimators=1000, max_depth=20      | 66.84          | Moderate                |
+| **Best Configuration**              | **65.17**      | **Controlled**          |
+
+## Performance Metrics
+- **Training MAE**: 12.41
+- **Test MAE**: 65.17
+- **Training R²**: 0.992
+- **Test R²**: 0.851
+- **Training MAPE**: 0.38%
+- **Test MAPE**: 1.52%
+- **OOB Score**: 0.847
+
+## Performance Analysis
+- **Overfitting Ratio**: 5.25× (Test MAE/Training MAE)
+- **Feature Utilization**: 92% of available features used across all trees
+
+### Top Features by Importance:
+1. SNP500_lag_1 (24.1%)
+2. Nasdaq_100_Price_lag_1 (18.7%)
+3. VIX_Index_lag_1 (11.2%)
+4. SNP500_ma21 (8.9%)
+5. Treasury_Yield_10y (6.3%)
+
+## Comparative Position
+- **Strengths**: 
+  - Naturally resistant to overfitting
+  - Handles non-linear patterns effectively
+  - Provides feature importance metrics
+- **Weaknesses**:
+  - Less interpretable than single trees
+  - Slightly worse performance than tuned XGBoost
+- **Test MAE Rank**: 4th out of 6 models
+- **Interpretability**: Medium (between XGBoost and linear models)
+
+# XGBoost Model Performance
+
+## Model Architecture
+- **Algorithm**: Gradient Boosted Decision Trees
+- **Learning Rate**: 0.05
+- **Max Depth**: 5
+- **Subsample Ratio**: 0.9
+- **Feature Sample Ratio**: 0.9
+- **Early Stopping**: 50 rounds patience
+- 
+![predicted vs actual before overfitting adjustment](https://github.com/user-attachments/assets/15ae46ab-3acf-41dc-875c-1f80a0ebc866)
+
+## Optimization Results
+| Parameter Set          | Validation MAE | Status          |
+|------------------------|----------------|-----------------|
+| Conservative Settings  | 72.43          | Underfit        |
+| **Optimal Settings**   | **66.35**      | Balanced        |
+| Aggressive Settings    | 63.12          | Overfit         |
+
+## Key Metrics
+
+- Training MAE: 1.72,
+- Test MAE': 66.35, 
+- Training R²: 1.000,
+- Test R²': 0.843,
+- Training MAPE': 0.05%,
+- Test MAPE': 1.46
+
+# ARIMA Implementation & Performance Analysis
+
+## Model Architecture
+- **Model Type**: Autoregressive Integrated Moving Average
+- **Model Selection**:
+  - Used Box-Jenkins methodology
+  - ACF/PACF analysis for parameter identification
+  - Augmented Dickey-Fuller test for stationarity (d=1)
+- **Optimal Parameters**: (p=2, d=1, q=1)
+- **Validation**: Walk-forward validation with 5 folds
+
+## Parameter Optimization Results
+| Parameter Combination | AIC Score | Residual Normality (p-value) |
+|-----------------------|-----------|------------------------------|
+| (1,1,0)               | 4123.7    | 0.032                        |
+| (2,1,1)               | 4089.2    | 0.127                        |
+| (3,1,2)               | 4091.5    | 0.085                        |
+| **Best Configuration**| **4089.2**| **0.127**                    |
+
+## Performance Metrics
+- **Training MAE**: 71.83
+- **Test MAE**: 73.46
+- **Training RMSE**: 89.21
+- **Test RMSE**: 91.07
+- **MAPE**: 2.13%
+- **Ljung-Box Q-test**: p=0.21 (residuals uncorrelated)
+- **Shapiro-Wilk**: p=0.11 (residuals normal)
+
+## Diagnostic Analysis
+- **Stationarity Achieved**: After 1st differencing (ADF p=0.003)
+- **ACF/PACF Patterns**:
+  - Significant spike at lag 1 (PACF)
+  - Cutoff after lag 1 (ACF)
+- **Residual Analysis**:
+  - Mean: 0.12 (≈0)
+  - Std Dev: 42.3
+  - No remaining autocorrelation
+
+## Comparative Position
+- **Strengths**:
+  - Explicit time dependence modeling
+  - Statistical rigor in parameter selection
+  - Naturally resistant to overfitting
+  - Provides prediction intervals
+- **Weaknesses**:
+  - Linear assumptions limit complex patterns
+  - Requires stationary data
+  - Poorer performance on volatile periods
+- **Test MAE Rank**: 6th out of 6 models
+- **Interpretability**: High (clear statistical framework)
+
 
 ### Hyperparameter Optimization
 - TimeSeriesSplit cross-validation (5 folds)
