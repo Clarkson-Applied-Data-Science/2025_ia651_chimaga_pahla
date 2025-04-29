@@ -92,25 +92,97 @@ Correlation Results.*
 
 ## Feature Engineering
 
-- **Lag Features**: 1-day, 3-day, and 7-day lagged versions of key prices
-- **Percentage Changes**: Daily returns for all assets
-- **Technical Indicators**:
-  - Moving averages (7-day and 21-day)
-  - Relative Strength Index (RSI)
-  - Bollinger Bands
-- **Date Features**: Day of week, month, and quarter
-- **Interaction Terms**: Cross-features between highly correlated assets
+### Technical Indicators Implemented
 
+#### Moving Averages
+- **7-day SMA**: Short-term trend indicator
+- **21-day SMA**: Medium-term trend baseline
+
+#### Bollinger Bands®
+- 20-day moving average centerline
+- Upper/lower bands at ±2 standard deviations
+- %B indicator showing price position within bands
+
+#### Momentum Indicators
+- **14-day RSI**: Measures speed/magnitude of price movements
+  - Overbought (>70) and oversold (<30) thresholds
+- **10-day Momentum**: Current vs. past price ratio
+- **Daily Returns**: Percentage price changes
+
+#### Volatility Metrics
+- 21-day rolling standard deviation of returns
+
+#### Temporal Features
+- Cyclical patterns:
+  - Day of week
+  - Month
+  - Quarter
+  - Year
+- Categorical weekday dummies (one-hot encoded)
+
+#### Cross-Asset Interactions
+- Multiplicative terms for correlated pairs:
+  - S&P 500 × Nasdaq 100
+  - Gold × Crude Oil  
+  - Apple × Microsoft
+
+### Usage
+
+# Generate features
+engineered_data = engineer_technical_features(raw_data)
 ## Model Development
 
-- **Train/Test Split**: Time-based (not random) with first 80% for training, last 20% for testing
-- **Models Evaluated**:
-  - Linear Regression (baseline)
-  - Ridge Regression (new)
-  - Lasso Regression (new)
-  - Random Forest
-  - XGBoost
-  - ARIMA
+Our approach followed a systematic methodology to ensure robust forecasting performance:
+
+### Train/Test Split
+- Implemented time-based split (not random) to preserve temporal structure
+- Allocated first 80% of records for training, most recent 20% for testing
+- Prevented data leakage by training only on historically available data
+
+### Model Selection and Implementation
+Evaluated six modeling approaches:
+
+#### Linear Regression (Baseline)
+- Foundation benchmark model
+- Feature engineering for lagged effects and technical indicators
+- Reference point for complex models
+
+#### Ridge Regression
+- L2 regularization to control coefficient magnitudes
+- Optimized alpha parameter with TimeSeriesSplit CV
+- Addressed multicollinearity in financial data
+
+#### Lasso Regression
+- L1 regularization for sparsity and feature selection
+- Alpha optimization via grid search
+- Identified influential features while reducing overfitting
+
+#### Random Forest
+- Ensemble of decision trees for non-linear relationships
+- Tuned tree depth, n_estimators, and min_samples_split
+- Leveraged feature importance metrics
+
+#### XGBoost
+- Gradient boosting for enhanced performance
+- Early stopping and learning rate schedules
+- Optimized subsample/column sample parameters
+
+#### ARIMA
+- Statistical time series model complement
+- ACF/PACF analysis for optimal (p,d,q) parameters
+- Box-Jenkins methodology for validation
+
+### Hyperparameter Optimization
+- TimeSeriesSplit cross-validation (5 folds)
+- Grid search for optimal configurations
+- Strict temporal ordering to prevent lookahead bias
+
+### Evaluation Framework
+- Metrics: MAE, RMSE, R², and MAPE
+- Training vs testing performance comparison
+- Residual analysis to validate assumptions
+
+This process identified the most effective forecasting approach while revealing predictive relationships in the financial time series.
 
 ### Data Leakage Considerations
 
@@ -160,6 +232,7 @@ The Lasso model with optimal alpha selected 35 features out of the original 87 e
 5. Gold_Price_lag_1
 
 This significant reduction in features helps to prevent overfitting by creating a more parsimonious model.
+![feature selection reduction](https://github.com/user-attachments/assets/be645adc-4fdf-4104-9cbf-0142ed23142f)
 
 ## Performance Comparison
 
