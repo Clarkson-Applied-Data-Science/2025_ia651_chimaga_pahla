@@ -655,7 +655,7 @@ For practical implementation, we recommend using the Ridge Regression model with
 
 ## Acknowledgments
 
-We would like to express our sincere gratitude to Lecturer Michael Gilbert for his guidance and valuable insights throughout this project.
+We would like to express our sincere gratitude to our Instructor Michael Gilbert for his guidance and valuable insights throughout this project.
 
 ## References
 
