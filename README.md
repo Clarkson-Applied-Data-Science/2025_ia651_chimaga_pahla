@@ -666,3 +666,147 @@ We would like to express our sincere gratitude to our Instructor Michael Gilbert
 5. Sezer, O. B., et al. (2020). *Financial time series forecasting with deep learning*.
 6. Brownlee, J. (2018). *Introduction to Time Series Forecasting with Python*.
 7. Gilbert, M. (2024). *Lecture Notes on Time Series Analysis and Financial Forecasting*.
+
+
+
+ [Appendix: Code](#appendix-code)
+
+# S&P 500 Forecasting with RNNs, LSTMs, and XGBoost
+
+This repository contains code for forecasting S&P 500 index values using multiple machine learning approaches, including Recurrent Neural Networks (RNNs), Long Short-Term Memory networks (LSTMs), and XGBoost.
+
+## Table of Contents
+
+- [Dependencies](#dependencies)
+- [Data Preparation](#data-preparation)
+- [Time Series Analysis](#time-series-analysis)
+- [LSTM Model](#lstm-model)
+- [XGBoost Model](#xgboost-model)
+- [Ensemble Model](#ensemble-model)
+- [Running the Pipeline](#running-the-pipeline)
+
+## Dependencies
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Bidirectional, GRU
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+import xgboost as xgb
+import statsmodels.tsa.api as smt
+from statsmodels.tsa.stattools import adfuller
+import warnings
+warnings.filterwarnings('ignore')
+
+##Data Preparation
+
+def load_data(file_path='US_Stock_Data.xlsx'):
+    """Load and prepare the dataset"""
+    # Load the data
+    df = pd.read_excel(file_path)
+    
+    # Identify S&P 500 column
+    sp500_col = None
+    for col in df.columns:
+        if 'S&P' in col or 'SP500' in col or 'SP_500' in col:
+            sp500_col = col
+            break
+    
+    if not sp500_col:
+        raise ValueError("S&P 500 column not found in dataset")
+    
+    # Select features
+    features = ['Crude_oil_Price', 'Gold_Price', 'Nasdaq_100_Price',
+               'Apple_Price', 'Microsoft_Price', 'Bitcoin_Price',
+               'Google_Price']
+    
+    # Select only needed columns
+    selected_data = df[['Date', sp500_col] + features].copy()
+    selected_data = selected_data.rename(columns={sp500_col: 'SP500'})
+    
+    # Convert to datetime
+    selected_data['Date'] = pd.to_datetime(selected_data['Date'])
+    
+    # Sort by date
+    selected_data = selected_data.sort_values('Date')
+    
+    # Handle missing values
+    selected_data = selected_data.fillna(method='ffill').fillna(method='bfill')
+    
+    return selected_data
+
+def add_technical_indicators(df):
+    """Add technical indicators for S&P 500 forecasting"""
+    df_features = df.copy()
+    
+    # Moving Averages
+    df_features['SP500_MA5'] = df_features['SP500'].rolling(window=5).mean()
+    df_features['SP500_MA20'] = df_features['SP500'].rolling(window=20).mean()
+    df_features['SP500_MA50'] = df_features['SP500'].rolling(window=50).mean()
+    
+    # RSI (Relative Strength Index)
+    delta = df_features['SP500'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    df_features['SP500_RSI'] = 100 - (100 / (1 + rs))
+    
+    # Returns and volatility
+    df_features['SP500_Returns'] = df_features['SP500'].pct_change()
+    df_features['SP500_Volatility'] = df_features['SP500'].rolling(window=20).std() / df_features['SP500'].rolling(window=20).mean()
+    
+    # Relative performance
+    df_features['SP500_vs_Nasdaq'] = df_features['SP500'] / df_features['Nasdaq_100_Price']
+    df_features['SP500_vs_Oil'] = df_features['SP500'] / df_features['Crude_oil_Price']
+    df_features['SP500_vs_Gold'] = df_features['SP500'] / df_features['Gold_Price']
+    
+    # Calendar features
+    df_features['Day_of_Week'] = df_features['Date'].dt.dayofweek
+    df_features['Month'] = df_features['Date'].dt.month
+    df_features['Quarter'] = df_features['Date'].dt.quarter
+    
+    # Lagged features
+    df_features['SP500_Lag1'] = df_features['SP500'].shift(1)
+    df_features['SP500_Lag2'] = df_features['SP500'].shift(2)
+    df_features['SP500_Lag5'] = df_features['SP500'].shift(5)
+    
+    # Drop rows with NaN values
+    df_features = df_features.dropna()
+    
+    return df_features
+
+def visualize_data(df):
+    """Visualize the data relationships"""
+    # Plot S&P 500 over time
+    plt.figure(figsize=(15, 6))
+    plt.plot(df['Date'], df['SP500'])
+    plt.title('S&P 500 Index Over Time')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.grid(True)
+    plt.show()
+    
+    # Plot correlation with other features
+    plt.figure(figsize=(12, 10))
+    correlation = df.select_dtypes(include=['number']).corr()
+    mask = np.triu(correlation)
+    sns.heatmap(correlation, annot=False, cmap='coolwarm', mask=mask)
+    plt.title('Feature Correlation Matrix')
+    plt.tight_layout()
+    plt.show()
+    
+    # Show specific correlation with S&P 500
+    plt.figure(figsize=(10, 8))
+    correlation_with_sp500 = correlation['SP500'].sort_values(ascending=False)
+    correlation_with_sp500 = correlation_with_sp500.drop('SP500')
+    correlation_with_sp500.plot(kind='bar')
+    plt.title('Correlation with S&P 500')
+    plt.grid(axis='y')
+    plt.tight_layout()
+    plt.show()
