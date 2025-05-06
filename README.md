@@ -810,3 +810,275 @@ def visualize_data(df):
     plt.grid(axis='y')
     plt.tight_layout()
     plt.show()
+
+def prepare_data_for_xgboost(train_data, val_data, test_data, sequence_length=30):
+    """Prepare data for XGBoost model with lagged features"""
+    # Function to create lagged features
+    def create_lagged_features(data, target_col, lag_periods):
+        df_lagged = data.copy()
+        
+        # Create lag features for target
+        for lag in lag_periods:
+            df_lagged[f'{target_col}_lag_{lag}'] = df_lagged[target_col].shift(lag)
+        
+        # Create lag features for other predictors
+        for col in data.columns:
+            if col != target_col:
+                df_lagged[f'{col}_lag_1'] = df_lagged[col].shift(1)
+        
+        # Create rolling statistics
+        for window in [5, 10, 20]:
+            df_lagged[f'{target_col}_ma_{window}'] = df_lagged[target_col].rolling(window=window).mean()
+            df_lagged[f'{target_col}_std_{window}'] = df_lagged[target_col].rolling(window=window).std()
+        
+        # Drop rows with NaN values
+        df_lagged = df_lagged.dropna()
+        
+        # Separate features and target
+        X = df_lagged.drop(target_col, axis=1)
+        y = df_lagged[target_col]
+        
+        return X, y
+    
+    # Define lag periods based on sequence length
+    lag_periods = list(range(1, sequence_length + 1))
+    
+    # Create lagged features for each dataset
+    X_train_xgb, y_train_xgb = create_lagged_features(train_data, 'SP500', lag_periods)
+    X_val_xgb, y_val_xgb = create_lagged_features(val_data, 'SP500', lag_periods)
+    X_test_xgb, y_test_xgb = create_lagged_features(test_data, 'SP500', lag_periods)
+    
+    return X_train_xgb, y_train_xgb, X_val_xgb, y_val_xgb, X_test_xgb, y_test_xgb
+
+def train_xgboost_model(X_train, y_train, X_val, y_val):
+    """Train XGBoost model for S&P 500 prediction"""
+    # Define model parameters
+    params = {
+        'objective': 'reg:squarederror',
+        'n_estimators': 1000,
+        'max_depth': 6,
+        'learning_rate': 0.01,
+        'subsample': 0.8,
+        'colsample_bytree': 0.8,
+        'gamma': 0,
+        'min_child_weight': 1,
+        'reg_alpha': 0.1,
+        'reg_lambda': 1,
+        'random_state': 42
+    }
+    
+    # Create and train model
+    model = xgb.XGBRegressor(**params)
+    
+    model.fit(
+        X_train, y_train,
+        eval_set=[(X_train, y_train), (X_val, y_val)],
+        eval_metric='rmse',
+        early_stopping_rounds=50,
+        verbose=100
+    )
+    
+    # Plot feature importance
+    plt.figure(figsize=(12, 8))
+    xgb.plot_importance(model, max_num_features=20, height=0.8)
+    plt.title('XGBoost Feature Importance')
+    plt.tight_layout()
+    plt.show()
+    
+    return model
+
+def evaluate_xgboost_model(model, X_test, y_test):
+    """Evaluate XGBoost model performance"""
+    # Make predictions
+    predictions = model.predict(X_test)
+    
+    # Calculate metrics
+    mse = mean_squared_error(y_test, predictions)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(y_test, predictions)
+    r2 = r2_score(y_test, predictions)
+    
+    print("XGBoost Model Performance:")
+    print(f"MSE: {mse:.2f}")
+    print(f"RMSE: {rmse:.2f}")
+    print(f"MAE: {mae:.2f}")
+    print(f"R²: {r2:.4f}")
+    
+    # Plot predictions vs actual
+    plt.figure(figsize=(15, 6))
+    plt.plot(y_test.values, label='Actual S&P 500')
+    plt.plot(predictions, label='Predicted S&P 500')
+    plt.title('XGBoost: S&P 500 Predictions vs Actual')
+    plt.xlabel('Time')
+    plt.ylabel('S&P 500 Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    return predictions, rmse, r2
+
+
+
+def ensemble_predictions(lstm_preds, xgb_preds, y_actual, weights=None):
+    """Create ensemble predictions by combining LSTM and XGBoost"""
+    if weights is None:
+        # Default to equal weighting
+        weights = [0.5, 0.5]
+    
+    # Create weighted ensemble
+    ensemble_preds = (weights[0] * lstm_preds.flatten() + 
+                      weights[1] * xgb_preds.flatten())
+    
+    # Calculate metrics
+    mse = mean_squared_error(y_actual, ensemble_preds)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(y_actual, ensemble_preds)
+    r2 = r2_score(y_actual, ensemble_preds)
+    
+    print("Ensemble Model Performance:")
+    print(f"MSE: {mse:.2f}")
+    print(f"RMSE: {rmse:.2f}")
+    print(f"MAE: {mae:.2f}")
+    print(f"R²: {r2:.4f}")
+    
+    # Plot predictions vs actual
+    plt.figure(figsize=(15, 6))
+    plt.plot(y_actual, label='Actual S&P 500')
+    plt.plot(lstm_preds, label='LSTM Predictions', alpha=0.7)
+    plt.plot(xgb_preds, label='XGBoost Predictions', alpha=0.7)
+    plt.plot(ensemble_preds, label='Ensemble Predictions', linewidth=2)
+    plt.title('Ensemble Model: S&P 500 Predictions vs Actual')
+    plt.xlabel('Time')
+    plt.ylabel('S&P 500 Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    return ensemble_preds, rmse, r2
+
+def compare_models(lstm_rmse, xgb_rmse, ensemble_rmse, lstm_r2, xgb_r2, ensemble_r2):
+    """Compare performance of different models"""
+    models = ['LSTM', 'XGBoost', 'Ensemble']
+    rmse_values = [lstm_rmse, xgb_rmse, ensemble_rmse]
+    r2_values = [lstm_r2, xgb_r2, ensemble_r2]
+    
+    plt.figure(figsize=(12, 10))
+    
+    # RMSE comparison
+    plt.subplot(2, 1, 1)
+    bars = plt.bar(models, rmse_values, color=['blue', 'green', 'red'])
+    plt.title('RMSE Comparison (Lower is Better)')
+    plt.ylabel('RMSE')
+    plt.grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.2f}',
+                ha='center', va='bottom', rotation=0)
+    
+    # R² comparison
+    plt.subplot(2, 1, 2)
+    bars = plt.bar(models, r2_values, color=['blue', 'green', 'red'])
+    plt.title('R² Comparison (Higher is Better)')
+    plt.ylabel('R²')
+    plt.grid(axis='y', alpha=0.3)
+    
+    # Add value labels
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.4f}',
+                ha='center', va='bottom', rotation=0)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+
+def run_forecasting_pipeline(file_path, sequence_length=30):
+    """Run the complete S&P 500 forecasting pipeline"""
+    # Load data
+    print("Step 1: Loading and preparing data...")
+    df = load_data(file_path)
+    
+    # Add technical indicators
+    print("Step 2: Adding technical indicators...")
+    data_with_indicators = add_technical_indicators(df)
+    
+    # Visualize data
+    print("Step 3: Visualizing data...")
+    visualize_data(data_with_indicators)
+    
+    # Check stationarity and autocorrelation
+    print("Step 4: Checking stationarity and autocorrelation...")
+    check_stationarity_and_autocorrelation(data_with_indicators)
+    
+    # Split data
+    print("Step 5: Splitting and scaling data...")
+    (train_data, val_data, test_data, 
+     train_scaled, val_scaled, test_scaled, 
+     scaler, target_scaler, sp500_idx) = split_and_scale_data(data_with_indicators)
+    
+    # Create sequences for LSTM
+    print("Step 6: Creating sequences for LSTM...")
+    X_train, y_train = create_sequences(train_scaled, sequence_length, sp500_idx)
+    X_val, y_val = create_sequences(val_scaled, sequence_length, sp500_idx)
+    X_test, y_test = create_sequences(test_scaled, sequence_length, sp500_idx)
+    
+    # Train LSTM model
+    print("Step 7: Training LSTM model...")
+    input_shape = (X_train.shape[1], X_train.shape[2])
+    lstm_model, lstm_history = train_lstm_model(X_train, y_train, X_val, y_val, input_shape)
+    
+    # Evaluate LSTM model
+    print("Step 8: Evaluating LSTM model...")
+    lstm_preds, y_test_actual, lstm_rmse, lstm_r2 = evaluate_lstm_model(
+        lstm_model, X_test, y_test, target_scaler
+    )
+    
+    # Prepare data for XGBoost
+    print("Step 9: Preparing data for XGBoost...")
+    X_train_xgb, y_train_xgb, X_val_xgb, y_val_xgb, X_test_xgb, y_test_xgb = prepare_data_for_xgboost(
+        train_data, val_data, test_data, sequence_length
+    )
+    
+    # Train XGBoost model
+    print("Step 10: Training XGBoost model...")
+    xgb_model = train_xgboost_model(X_train_xgb, y_train_xgb, X_val_xgb, y_val_xgb)
+    
+    # Evaluate XGBoost model
+    print("Step 11: Evaluating XGBoost model...")
+    xgb_preds, xgb_rmse, xgb_r2 = evaluate_xgboost_model(xgb_model, X_test_xgb, y_test_xgb)
+    
+    # Create ensemble predictions
+    print("Step 12: Creating ensemble predictions...")
+    ensemble_preds, ensemble_rmse, ensemble_r2 = ensemble_predictions(
+        lstm_preds, xgb_preds, y_test_xgb.values
+    )
+    
+    # Compare model performances
+    print("Step 13: Comparing model performances...")
+    compare_models(
+        lstm_rmse, xgb_rmse, ensemble_rmse,
+        lstm_r2, xgb_r2, ensemble_r2
+    )
+    
+    return {
+        'lstm_model': lstm_model,
+        'xgb_model': xgb_model,
+        'metrics': {
+            'lstm_rmse': lstm_rmse,
+            'xgb_rmse': xgb_rmse,
+            'ensemble_rmse': ensemble_rmse,
+            'lstm_r2': lstm_r2,
+            'xgb_r2': xgb_r2,
+            'ensemble_r2': ensemble_r2
+        }
+    }
+
+# Run the complete pipeline
+if __name__ == "__main__":
+    results = run_forecasting_pipeline('US_Stock_Data.xlsx')
+    print("\nForecasting pipeline completed successfully!")
